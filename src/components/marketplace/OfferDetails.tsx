@@ -14,6 +14,8 @@ import {
   BuildingOfficeIcon,
   CurrencyDollarIcon,
   TruckIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
 } from "@heroicons/react/24/outline";
 import {
   formatCurrency,
@@ -21,8 +23,9 @@ import {
   formatDistance,
   formatWeight,
   getLocationString,
+  formatDateTime,
 } from "@/utils/formatters";
-import { createNegotiation } from "@/services/marketplaceService";
+import { createNegotiation, acceptOffer } from "@/services/marketplaceService";
 import EscrowPaymentUI from "@/components/escrow/EscrowPaymentUI";
 
 interface OfferDetailsProps {
@@ -31,6 +34,13 @@ interface OfferDetailsProps {
   onStartNegotiation?: (targetRate: number, maxRate: number, isAIEnabled: boolean) => void;
   onPaymentComplete?: (transactionId: string) => void;
 }
+
+// Mock current user - in a real app this would come from authentication
+const currentUser = {
+  id: "user-123",
+  name: "John Forwarder",
+  role: "carrier" as const
+};
 
 export default function OfferDetails({
   offer,
@@ -42,8 +52,8 @@ export default function OfferDetails({
   const [maxRate, setMaxRate] = useState(Math.round(offer.price * 0.95).toString());
   const [isAIEnabled, setIsAIEnabled] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showPaymentUI, setShowPaymentUI] = useState(false);
   const [showNegotiationForm, setShowNegotiationForm] = useState(false);
+  const [showPaymentUI, setShowPaymentUI] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,6 +108,30 @@ export default function OfferDetails({
       
       // Close payment UI
       setShowPaymentUI(false);
+    }
+  };
+
+  const handleDirectAccept = async () => {
+    setIsSubmitting(true);
+    
+    try {
+      const updatedOffer = await acceptOffer(
+        offer.id,
+        currentUser.id,
+        currentUser.name,
+        currentUser.role
+      );
+      
+      // If payment complete handler exists, call it with a dummy transaction ID
+      if (onPaymentComplete) {
+        const transactionId = `tx-${Date.now()}`;
+        onPaymentComplete(transactionId);
+      }
+    } catch (error) {
+      console.error("Error accepting offer:", error);
+      alert("Failed to accept offer. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -590,10 +624,11 @@ export default function OfferDetails({
                 )}
                 <button
                   type="button"
-                  onClick={() => setShowPaymentUI(true)}
-                  className="inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                  onClick={handleDirectAccept}
+                  disabled={isSubmitting}
+                  className="inline-flex justify-center items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
                 >
-                  Accept Offer
+                  {isSubmitting ? "Processing..." : "Accept Offer"}
                 </button>
               </div>
               

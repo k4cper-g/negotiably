@@ -16,8 +16,19 @@ export const formatDate = (dateString: string): string => {
   }).format(date);
 };
 
-export const formatDateTime = (dateString: string): string => {
+export const formatDateTime = (dateString: string, compact: boolean = false): string => {
   const date = new Date(dateString);
+  
+  if (compact) {
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    }).format(date);
+  }
+  
   return new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
@@ -71,6 +82,8 @@ export const getStatusColor = (status: string): string => {
       return 'text-gray-600 bg-gray-100';
     case 'cancelled':
       return 'text-red-600 bg-red-100';
+    case 'finalized':
+      return 'text-purple-600 bg-purple-100';
     default:
       return 'text-gray-600 bg-gray-100';
   }
@@ -88,6 +101,8 @@ export const getStatusText = (status: string): string => {
       return 'Completed';
     case 'cancelled':
       return 'Cancelled';
+    case 'finalized':
+      return 'Finalized';
     default:
       return status.charAt(0).toUpperCase() + status.slice(1);
   }

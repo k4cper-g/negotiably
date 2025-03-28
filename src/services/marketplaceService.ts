@@ -20,6 +20,7 @@ import {
   mockNegotiations,
   mockAnalytics
 } from "./mockData";
+import { createTeamCollaboration } from './teamService';
 
 // Utility functions
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -204,9 +205,42 @@ export const addCounterOffer = async (
   return { ...negotiation };
 };
 
+export const acceptOffer = async (
+  offerId: string,
+  buyerUserId: string,
+  buyerName: string,
+  buyerRole: 'carrier' | 'shipper' | 'broker' | 'warehouse'
+): Promise<Offer> => {
+  await delay(700);
+  
+  const offer = mockOffers.find(o => o.id === offerId);
+  if (!offer) {
+    throw new Error(`Offer with id ${offerId} not found`);
+  }
+  
+  if (offer.status !== 'available') {
+    throw new Error(`Offer is not available for acceptance`);
+  }
+  
+  // Update offer status
+  offer.status = 'booked';
+  offer.updatedAt = new Date().toISOString();
+  
+  // Create a team collaboration space
+  const team = await createTeamCollaboration(offer, buyerUserId, buyerName, buyerRole);
+  
+  // Link the team ID to the offer
+  offer.teamId = team.id;
+  
+  return { ...offer };
+};
+
 export const concludeNegotiation = async (
   negotiationId: string,
-  status: 'accepted' | 'rejected' | 'expired'
+  status: 'accepted' | 'rejected' | 'expired',
+  buyerUserId?: string,
+  buyerName?: string,
+  buyerRole?: 'carrier' | 'shipper' | 'broker' | 'warehouse'
 ): Promise<Negotiation> => {
   await delay(600);
   
@@ -224,6 +258,19 @@ export const concludeNegotiation = async (
   if (offer) {
     offer.status = status === 'accepted' ? 'booked' : 'available';
     offer.updatedAt = new Date().toISOString();
+    
+    // If accepted and we have buyer info, create a team collaboration space
+    if (status === 'accepted' && buyerUserId && buyerName && buyerRole) {
+      const team = await createTeamCollaboration(
+        offer, 
+        buyerUserId, 
+        buyerName, 
+        buyerRole
+      );
+      
+      // Link the team ID to the offer
+      offer.teamId = team.id;
+    }
   }
   
   return { ...negotiation };

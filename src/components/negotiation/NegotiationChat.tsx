@@ -8,6 +8,13 @@ import { NegotiationStatus } from "@/components/ui/Status";
 import { addCounterOffer, concludeNegotiation, getAISuggestedRate } from "@/services/marketplaceService";
 import Link from "next/link";
 
+// Mock current user - in a real app this would come from authentication
+const currentUser = {
+  id: "user-123",
+  name: "John Forwarder",
+  role: "carrier" as const
+};
+
 interface NegotiationChatProps {
   negotiation: Negotiation;
   offer: Offer;
@@ -108,7 +115,10 @@ export default function NegotiationChat({
     try {
       const updatedNegotiation = await concludeNegotiation(
         negotiation.id,
-        "accepted"
+        "accepted",
+        currentUser.id,
+        currentUser.name,
+        currentUser.role
       );
       onNegotiationUpdated(updatedNegotiation);
     } catch (error) {

@@ -9,11 +9,13 @@ import {
   TruckIcon,
   ChartBarIcon,
   UserCircleIcon,
+  UserGroupIcon,
 } from "@heroicons/react/24/outline";
 
 const navigation = [
   { name: "Dashboard", href: "/" },
   { name: "Marketplace", href: "/marketplace" },
+  { name: "Teams", href: "/teams" },
   { name: "Negotiations", href: "/negotiations" },
   { name: "Analytics", href: "/analytics" },
 ];

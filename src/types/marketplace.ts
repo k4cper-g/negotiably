@@ -31,7 +31,7 @@ export interface Marketplace {
 }
 
 export type OfferType = 'cargo' | 'vehicle' | 'warehouse' | 'service';
-export type OfferStatus = 'available' | 'negotiating' | 'booked' | 'completed' | 'cancelled';
+export type OfferStatus = 'available' | 'negotiating' | 'booked' | 'completed' | 'cancelled' | 'finalized';
 
 export interface BaseOffer {
   id: string;
@@ -54,6 +54,7 @@ export interface BaseOffer {
     email: string;
   };
   transactionId?: string;
+  teamId?: string;
 }
 
 export interface CargoOffer extends BaseOffer {
@@ -195,4 +196,46 @@ export interface AnalyticsData {
     count: number;
     avgRate: number;
   }[];
+}
+
+export interface TeamCollaborationFile {
+  id: string;
+  teamId: string;
+  name: string;
+  fileType: 'document' | 'transport' | 'invoice' | 'customs' | 'other';
+  url: string;
+  uploadedBy: string;
+  uploadedAt: string;
+  size: number;
+  description?: string;
+}
+
+export interface TeamCollaborationMessage {
+  id: string;
+  teamId: string;
+  userId: string;
+  userName: string;
+  content: string;
+  createdAt: string;
+  attachments?: TeamCollaborationFile[];
+}
+
+export interface TeamCollaboration {
+  id: string;
+  offerId: string;
+  name: string;
+  participants: {
+    userId: string;
+    name: string;
+    role: 'carrier' | 'shipper' | 'broker' | 'warehouse';
+    joinedAt: string;
+  }[];
+  messages: TeamCollaborationMessage[];
+  files: TeamCollaborationFile[];
+  createdAt: string;
+  updatedAt: string;
+  status: 'active' | 'completed' | 'cancelled' | 'finalized';
+  finalizedAt?: string;
+  finalizedBy?: string;
+  finalizedReason?: string;
 } 
